@@ -1,0 +1,59 @@
+version: "3.9"
+
+services:
+  web:
+    build: .
+    container_name: ecom-web
+    working_dir: /app
+    volumes:
+      - .:/app
+    ports:
+      - '3000:3000'
+    depends_on:
+      - mongo
+    environment:
+      - MONGO_URI=mongodb://mongo:27017/ecommerce
+    networks:
+      - backend
+
+  mongo:
+    image: mongo
+    container_name: mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - backend
+
+  mongo-express:
+    image: mongo-express
+    container_name: mongo-express
+    depends_on:
+      - mongo
+    ports:
+      - "8081:8081"
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: admin
+      ME_CONFIG_MONGODB_ADMINPASSWORD: pass
+      ME_CONFIG_MONGODB_URL: mongodb://mongo:27017/ecommerce
+    networks:
+      - backend
+
+  nginx:
+    container_name: nginx-proxy
+    image: nginx
+    ports:
+      - "443:443"
+    volumes:
+      - ./nginx/ssl/localhost.crt:/etc/nginx/ssl/nginx.crt
+      - ./nginx/ssl/localhost.key:/etc/nginx/ssl/nginx.key
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+    networks:
+      - backend
+
+volumes:
+  mongo-data:
+
+networks:
+  backend:
